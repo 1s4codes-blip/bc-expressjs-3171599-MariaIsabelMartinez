@@ -43,4 +43,4 @@ Servidor disponible en `http://localhost:3000`.
 - `strict: true` con tipos explícitos en todos los handlers
 - `UpdateSupplierDto` usa `Partial` para actualizaciones parciales
 - Graceful shutdown con `SIGTERM` y `SIGINT`
-- Gestor de paquetes: `pnpm`
+- Gestor de paquetes: `pnpm`  
