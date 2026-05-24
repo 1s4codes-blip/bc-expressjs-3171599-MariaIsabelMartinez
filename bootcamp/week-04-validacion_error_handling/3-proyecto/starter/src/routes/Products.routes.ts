@@ -1,12 +1,11 @@
 // ============================================
-// ROUTES — registrar los 5 endpoints del recurso
+// ROUTES — Products endpoints
 // ============================================
 import { Router } from 'express';
-import * as controller from '../controllers/items.controller';
+import * as controller from '../controllers/Products.controller';
 
 const router = Router();
 
-// TODO: registrar los 5 endpoints CRUD
 router.get('/', controller.getAll);
 router.get('/:id', controller.getById);
 router.post('/', controller.create);
