@@ -1,25 +1,23 @@
-// src/routes/items.routes.ts — Definición de rutas del recurso
-// ============================================================
-// TODO: Definir las rutas CRUD para tu recurso
-//
-// Estructura esperada:
-//   GET    /         → ctrl.getAll
-//   GET    /:id      → ctrl.getById
-//   POST   /         → ctrl.create
-//   PUT    /:id      → ctrl.update
-//   DELETE /:id      → ctrl.remove
-//
-// Ejemplo:
-//
-// import { Router } from 'express';
-// import * as ctrl from '../controllers/items.controller';
-//
-// const router = Router();
-// router.get('/', ctrl.getAll);
-// router.get('/:id', ctrl.getById);
-// router.post('/', ctrl.create);
-// router.put('/:id', ctrl.update);
-// router.delete('/:id', ctrl.remove);
-//
-// export default router;
-// ============================================================
+// src/routes/shipments.routes.ts — Definición de rutas del recurso Shipment
+
+import { Router } from 'express';
+import * as ctrl from '../controllers/items.controller';
+
+const router = Router();
+
+// GET  /api/v1/shipments?page=1&limit=10   → listado paginado
+router.get('/', ctrl.getAll);
+
+// GET  /api/v1/shipments/:id               → detalle por ID
+router.get('/:id', ctrl.getById);
+
+// POST /api/v1/shipments                   → crear nuevo
+router.post('/', ctrl.create);
+
+// PUT  /api/v1/shipments/:id               → actualizar
+router.put('/:id', ctrl.update);
+
+// DELETE /api/v1/shipments/:id             → eliminar
+router.delete('/:id', ctrl.remove);
+
+export default router;

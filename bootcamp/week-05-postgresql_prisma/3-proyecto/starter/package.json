@@ -12,14 +12,18 @@
     "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
+    "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "7.7.0",
+    "dotenv": "^17.4.2",
     "express": "5.1.0",
+    "pg": "^8.22.0",
     "winston": "3.17.0",
     "zod": "4.3.6"
   },
   "devDependencies": {
     "@types/express": "5.0.3",
     "@types/node": "22.15.21",
+    "@types/pg": "^8.20.0",
     "prisma": "7.7.0",
     "tsx": "4.19.4",
     "typescript": "5.8.3"

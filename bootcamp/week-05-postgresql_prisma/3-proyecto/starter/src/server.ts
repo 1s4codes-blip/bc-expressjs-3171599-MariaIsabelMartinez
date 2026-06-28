@@ -1,21 +1,14 @@
 // src/server.ts — Entry point del servidor
-// ============================================================
-// TODO: Usar logger.info en lugar de console.log para los mensajes de inicio
-//
-// Pasos:
-//   1. Importar logger desde './config/logger'
-//   2. Reemplazar console.log por logger.info en el callback de app.listen
-//   3. Opcional: cerrar prisma.$disconnect() en el graceful shutdown
-// ============================================================
 
+import 'dotenv/config';
 import { app } from './app';
+import { logger } from './config/logger';
 
 const PORT = Number(process.env['PORT']) || 3000;
 
 const server = app.listen(PORT, () => {
-  // TODO: reemplazar console.log con logger.info
-  console.log(`🚀 Server running on http://localhost:${PORT}`);
-  console.log(`📘 Environment: ${process.env['NODE_ENV'] ?? 'development'}`);
+  logger.info(`Server running on http://localhost:${PORT}`);
+  logger.info(`Environment: ${process.env['NODE_ENV'] ?? 'development'}`);
 });
 
 process.on('SIGTERM', () => {

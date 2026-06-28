@@ -1,17 +1,66 @@
-// src/controllers/items.controller.ts — Capa HTTP
-// ============================================================
-// TODO: Implementar los handlers del controlador
-//
-// Lineamientos:
-//   - Cada función: async (req, res, next) => try { ... } catch (err) { next(err); }
-//   - getAll:  extraer page/limit de req.query, llamar service.listItems, res.json()
-//   - getById: extraer id de req.params, llamar service.getItem, res.json()
-//   - create:  validar con createItemSchema.safeParse(req.body), res.status(201).json()
-//   - update:  validar con updateItemSchema.safeParse(req.body), res.json()
-//   - remove:  llamar service.deleteItem, res.status(204).send()
-//
-// Recuerda:
-//   - Validar que page/limit sean números enteros positivos (Math.max, Math.min)
-//   - Si safeParse falla → res.status(400).json({ status: 'error', message: ... })
-//   - No manejar AppError aquí — el errorHandler global lo hace
-// ============================================================
+// src/controllers/shipments.controller.ts — Capa HTTP
+// Valida con Zod, llama al servicio y responde con status codes apropiados
+
+import { Request, Response, NextFunction } from 'express';
+import * as service from '../services/items.service';
+import { createShipmentSchema, updateShipmentSchema } from '../schemas/items.schema';
+
+export async function getAll(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const page = Math.max(1, Number(req.query['page']) || 1);
+    const limit = Math.min(100, Math.max(1, Number(req.query['limit']) || 10));
+    const result = await service.listShipments(page, limit);
+    res.json(result);
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function getById(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const id = Number(req.params['id']);
+    const shipment = await service.getShipment(id);
+    res.json(shipment);
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function create(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const parsed = createShipmentSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ status: 'error', message: parsed.error.flatten() });
+      return;
+    }
+    const shipment = await service.createShipment(parsed.data);
+    res.status(201).json(shipment);
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function update(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const id = Number(req.params['id']);
+    const parsed = updateShipmentSchema.safeParse(req.body);
+    if (!parsed.success) {
+      res.status(400).json({ status: 'error', message: parsed.error.flatten() });
+      return;
+    }
+    const shipment = await service.updateShipment(id, parsed.data);
+    res.json(shipment);
+  } catch (err) {
+    next(err);
+  }
+}
+
+export async function remove(req: Request, res: Response, next: NextFunction): Promise<void> {
+  try {
+    const id = Number(req.params['id']);
+    await service.deleteShipment(id);
+    res.status(204).send();
+  } catch (err) {
+    next(err);
+  }
+}
