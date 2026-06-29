@@ -1,69 +1,124 @@
-// ============================================
-// SEED — Insertar datos de prueba
-// TODO: Adaptar nombres y datos a tu dominio
-// ============================================
-//
-// REGLA IMPORTANTE: Insertar la entidad SECUNDARIA primero,
-// luego la PRINCIPAL usando los _id de la secundaria.
-//
-// Ejemplo para Biblioteca:
-//   Paso A: Insertar Authors → obtener _id
-//   Paso B: Insertar Books con author: author._id
-
 import 'dotenv/config';
 import { connectDB, disconnectDB } from './lib/mongoose';
-import { Secondary } from './models/secondary.model';
-import { Primary } from './models/primary.model';
+import { Supplier } from './models/supplier.model';
+import { Product } from './models/product.model';
 
 async function seed(): Promise<void> {
   await connectDB();
 
-  // TODO: Limpiar colecciones (orden inverso: primary primero, luego secondary)
-  await Primary.deleteMany({});
-  await Secondary.deleteMany({});
-  console.log('Collections cleared');
+  await Product.deleteMany({});
+  await Supplier.deleteMany({});
+  console.log('Colecciones limpiadas');
 
-  // TODO: Paso A — Insertar entidades secundarias y capturar _id
-  // Adapta los datos a tu dominio:
-  const [item1, item2, item3] = await Secondary.insertMany([
-    { name: 'Secundaria 1' },  // TODO: reemplazar con datos reales de tu dominio
-    { name: 'Secundaria 2' },
-    { name: 'Secundaria 3' },
-  ]);
-  console.log('Secondary entities inserted');
-
-  // TODO: Paso B — Insertar entidades principales referenciando los _id
-  // Adapta los campos y valores a tu dominio:
-  await Primary.insertMany([
+  const [proveedor1, proveedor2, proveedor3] = await Supplier.insertMany([
     {
-      name: 'Principal 1',          // TODO: campo real de tu dominio
-      secondary: item1._id,         // TODO: renombrar 'secondary' al campo real
-      // price: 100,                // TODO: añadir campos de tu dominio
+      name: 'TechImport S.A.',
+      contactPerson: 'Carlos Mendoza',
+      phone: '+1-305-555-0100',
+      email: 'carlos@techimport.com',
+      address: '1250 NW 107th Ave, Miami, FL 33172',
+      country: 'Estados Unidos',
     },
     {
-      name: 'Principal 2',
-      secondary: item1._id,
+      name: 'AsiaLogistics Co.',
+      contactPerson: 'Li Wei',
+      phone: '+86-21-5555-0101',
+      email: 'liwei@asialogistics.cn',
+      address: '300 Nanjing Road, Shanghai',
+      country: 'China',
     },
     {
-      name: 'Principal 3',
-      secondary: item2._id,
-    },
-    {
-      name: 'Principal 4',
-      secondary: item3._id,
-    },
-    {
-      name: 'Principal 5',
-      secondary: item2._id,
+      name: 'EuroDistribuciones SL',
+      contactPerson: 'Ana García',
+      phone: '+34-93-555-0102',
+      email: 'ana@eurodistribuciones.es',
+      address: 'Calle de la Industria 45, Barcelona',
+      country: 'España',
     },
   ]);
-  console.log('Primary entities inserted');
+  console.log('Proveedores insertados');
 
-  console.log('Seed completed successfully');
+  await Product.insertMany([
+    {
+      name: 'Laptop Gamer Pro X',
+      sku: 'LAP-GAM-001',
+      description: 'Laptop con RTX 4060, 16GB RAM, 512GB SSD',
+      purchasePrice: 580000,
+      salePrice: 899000,
+      stock: 15,
+      category: 'Electrónica',
+      originCountry: 'China',
+      supplier: proveedor1._id,
+      active: true,
+    },
+    {
+      name: 'Smartphone Ultra 5G',
+      sku: 'SMT-ULT-001',
+      description: 'Smartphone 5G con pantalla AMOLED 6.7"',
+      purchasePrice: 320000,
+      salePrice: 599000,
+      stock: 30,
+      category: 'Electrónica',
+      originCountry: 'China',
+      supplier: proveedor2._id,
+      active: true,
+    },
+    {
+      name: 'Aceite de Oliva Virgen Extra',
+      sku: 'ACE-OLI-001',
+      description: 'Aceite de oliva extra virgen 500ml, producción ecológica',
+      purchasePrice: 3500,
+      salePrice: 8900,
+      stock: 200,
+      category: 'Alimentos',
+      originCountry: 'España',
+      supplier: proveedor3._id,
+      active: true,
+    },
+    {
+      name: 'Vino Tinto Reserva 2019',
+      sku: 'VIN-TIN-001',
+      description: 'Vino tinto reserva D.O. Rioja, caja de 6 botellas',
+      purchasePrice: 18000,
+      salePrice: 45000,
+      stock: 50,
+      category: 'Bebidas',
+      originCountry: 'España',
+      supplier: proveedor3._id,
+      active: true,
+    },
+    {
+      name: 'Teclado Mecánico RGB',
+      sku: 'TEC-MEC-001',
+      description: 'Teclado mecánico inalámbrico con switches Cherry MX',
+      purchasePrice: 25000,
+      salePrice: 55000,
+      stock: 40,
+      category: 'Electrónica',
+      originCountry: 'China',
+      supplier: proveedor2._id,
+      active: true,
+    },
+    {
+      name: 'Monitor 27" 4K IPS',
+      sku: 'MON-4K-001',
+      description: 'Monitor 27 pulgadas 4K UHD, panel IPS, HDR10',
+      purchasePrice: 120000,
+      salePrice: 249000,
+      stock: 10,
+      category: 'Electrónica',
+      originCountry: 'Estados Unidos',
+      supplier: proveedor1._id,
+      active: true,
+    },
+  ]);
+  console.log('Productos insertados');
+
+  console.log('Seed completado exitosamente');
   await disconnectDB();
 }
 
 seed().catch((err: unknown) => {
-  console.error('Seed failed:', err);
+  console.error('Seed falló:', err);
   process.exit(1);
 });

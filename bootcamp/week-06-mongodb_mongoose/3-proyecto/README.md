@@ -1,52 +1,67 @@
-# Proyecto Semana 06 — API REST con MongoDB + Mongoose
+# Proyecto Semana 06 — API de Importación con MongoDB + Mongoose
 
-## 🎯 Objetivo
+## Dominio: Empresa de Importación
 
-Construir una API REST completa usando Express 5, TypeScript, Mongoose y MongoDB. La API debe incluir al menos **dos entidades relacionadas** con `populate()`, paginación, manejo de errores 11000 y CastError, y un seed con datos de prueba.
-
----
-
-## 📋 Tu Dominio Asignado
-
-> **El instructor te asignará un dominio único al inicio del bootcamp.**
-
-Adapta todos los nombres de entidades, campos y lógica de negocio al dominio que se te asignó. Ejemplos de adaptación:
-
-| Dominio | Entidad Principal | Entidad Secundaria | Campo de Referencia |
-|---------|------------------|--------------------|---------------------|
-| 📖 Biblioteca | Book | Author | `author: ObjectId` |
-| 💊 Farmacia | Medicine | Supplier | `supplier: ObjectId` |
-| 🏋️ Gimnasio | Member | Plan | `plan: ObjectId` |
-| 🍽️ Restaurante | Dish | Category | `category: ObjectId` |
-| 🏥 Hospital | Patient | Doctor | `assignedDoctor: ObjectId` |
-| 🎥 Cine | Movie | Genre | `genre: ObjectId` |
-| 🏬 Tienda de mascotas | Pet | Species | `species: ObjectId` |
-| ✈️ Agencia de viajes | Tour | Destination | `destination: ObjectId` |
+API REST para la gestión de una empresa de importación. Permite administrar **proveedores (suppliers)** y **productos importados (products)** con relaciones referenciadas y `populate()`.
 
 ---
 
-## ✅ Requisitos Funcionales
+## Entidades
 
-### Entidades (adaptables a tu dominio)
+### Supplier (Proveedor) — Entidad Secundaria
 
-**Entidad Secundaria** (sin referencias) — ejemplo: `Category`, `Author`, `Supplier`:
-- `GET    /api/v1/[secundaria]`       — listar todas
-- `GET    /api/v1/[secundaria]/:id`   — obtener por ID
-- `POST   /api/v1/[secundaria]`       — crear
-- `PUT    /api/v1/[secundaria]/:id`   — actualizar
-- `DELETE /api/v1/[secundaria]/:id`   — eliminar
+| Campo          | Tipo   | Validación             |
+|----------------|--------|------------------------|
+| name           | String | requerido, único, trim, max 100 |
+| contactPerson  | String | requerido, trim, max 100       |
+| phone          | String | requerido, trim, max 20        |
+| email          | String | requerido, email válido        |
+| address        | String | requerido, trim, max 200       |
+| country        | String | requerido, trim, max 100       |
 
-**Entidad Principal** (referencia a la secundaria) — ejemplo: `Product`, `Book`, `Member`:
-- `GET    /api/v1/[principal]`        — listar con paginación + populate()
-- `GET    /api/v1/[principal]/:id`    — obtener con populate()
-- `POST   /api/v1/[principal]`        — crear (validar que el ID de la secundaria sea válido)
-- `PUT    /api/v1/[principal]/:id`    — actualizar
-- `DELETE /api/v1/[principal]/:id`    — eliminar
+### Product (Producto Importado) — Entidad Principal
+
+| Campo         | Tipo     | Validación                    |
+|---------------|----------|-------------------------------|
+| name          | String   | requerido, trim, max 150      |
+| sku           | String   | requerido, único, uppercase   |
+| description   | String   | opcional, max 500             |
+| purchasePrice | Number   | requerido, min 0              |
+| salePrice     | Number   | requerido, min 0              |
+| stock         | Number   | requerido, min 0, default 0   |
+| category      | String   | requerido, trim, max 100      |
+| originCountry | String   | requerido, trim, max 100      |
+| supplier      | ObjectId | ref: 'Supplier', requerido    |
+| active        | Boolean  | default true                  |
+
+---
+
+## Endpoints
+
+### Suppliers (`/api/v1/suppliers`)
+
+| Método | Ruta              | Descripción              | Códigos de respuesta       |
+|--------|-------------------|--------------------------|----------------------------|
+| GET    | `/api/v1/suppliers`     | Listar todos los proveedores      | 200 |
+| GET    | `/api/v1/suppliers/:id` | Obtener proveedor por ID          | 200, 400, 404 |
+| POST   | `/api/v1/suppliers`     | Crear un proveedor                | 201, 409 |
+| PUT    | `/api/v1/suppliers/:id` | Actualizar un proveedor           | 200, 400, 404, 409 |
+| DELETE | `/api/v1/suppliers/:id` | Eliminar un proveedor             | 204, 400, 404 |
+
+### Products (`/api/v1/products`)
+
+| Método | Ruta              | Descripción              | Códigos de respuesta       |
+|--------|-------------------|--------------------------|----------------------------|
+| GET    | `/api/v1/products`     | Listar productos con paginación y populate | 200 |
+| GET    | `/api/v1/products/:id` | Obtener producto con populate              | 200, 400, 404 |
+| POST   | `/api/v1/products`     | Crear un producto                  | 201, 400, 409 |
+| PUT    | `/api/v1/products/:id` | Actualizar un producto             | 200, 400, 404, 409 |
+| DELETE | `/api/v1/products/:id` | Eliminar un producto               | 204, 400, 404 |
 
 ### Paginación
 
 ```
-GET /api/v1/[principal]?page=1&limit=10
+GET /api/v1/products?page=1&limit=10&search=laptop
 ```
 
 Respuesta:
@@ -61,140 +76,30 @@ Respuesta:
 
 ---
 
-## 🛠️ Stack Técnico
+## Manejo de Errores
 
-```
-Node.js 22   |   Express 5.1.0   |   TypeScript 5.8.3
-Mongoose 9.4.1   |   MongoDB 7 (Docker)   |   Zod 4.3.6
+| Condición                     | Código | Descripción                |
+|-------------------------------|--------|----------------------------|
+| CastError (ID inválido)       | 400    | Bad Request                |
+| Documento no encontrado       | 404    | Not Found                  |
+| Violación de índice unique    | 409    | Conflict                   |
+| Error interno                 | 500    | Internal Server Error      |
+
+---
+
+## Seed
+
+El seed inserta 3 proveedores y 6 productos con datos coherentes del dominio de importación.
+
+```bash
+pnpm seed
 ```
 
 ---
 
-## 📁 Estructura del Proyecto
+## Tecnologías
 
-```
-starter/
-├── docker-compose.yml
-├── package.json
-├── tsconfig.json
-├── .env.example
-└── src/
-    ├── lib/
-    │   └── mongoose.ts          ← connectDB (dado)
-    ├── models/
-    │   ├── [secondary].model.ts ← TODO: definir schema
-    │   └── [primary].model.ts   ← TODO: definir schema con ref
-    ├── errors/
-    │   └── AppError.ts          (dado)
-    ├── middlewares/
-    │   ├── errorHandler.ts      (dado)
-    │   └── notFound.ts          (dado)
-    ├── schemas/
-    │   ├── [secondary].schema.ts ← TODO: validación Zod
-    │   └── [primary].schema.ts   ← TODO: validación Zod con ObjectId
-    ├── repositories/
-    │   ├── [secondary].repository.ts ← TODO: CRUD completo
-    │   └── [primary].repository.ts   ← TODO: CRUD + populate + error handling
-    ├── services/
-    │   ├── [secondary].service.ts    ← TODO
-    │   └── [primary].service.ts      ← TODO
-    ├── controllers/
-    │   ├── [secondary].controller.ts ← TODO
-    │   └── [primary].controller.ts   ← TODO
-    ├── routes/
-    │   ├── [secondary].routes.ts     ← TODO
-    │   └── [primary].routes.ts       ← TODO
-    ├── app.ts                        ← TODO: montar ambos routers
-    ├── server.ts                     (dado — connectDB antes de listen)
-    └── seed.ts                       ← TODO: insertar secundaria primero
-```
-
----
-
-## 💡 Guía de Implementación
-
-### 1. Definir los schemas de Mongoose
-
-```ts
-// TODO: Adaptar los campos a tu dominio
-// Entidad secundaria (sin refs):
-const secondarySchema = new Schema<ISecondary>({
-  name: { type: String, required: true, unique: true, trim: true },
-  // ... campos específicos de tu dominio
-}, { timestamps: true });
-
-// Entidad principal (con ref a secundaria):
-const primarySchema = new Schema<IPrimary>({
-  name: { type: String, required: true },
-  // Campo de referencia — ADAPTAR el nombre:
-  [secondary]: {
-    type: Schema.Types.ObjectId,
-    ref: '[SecondaryModelName]',
-    required: true,
-  },
-  // ... campos específicos de tu dominio
-}, { timestamps: true });
-```
-
-### 2. Validar en Zod
-
-```ts
-// El campo de referencia debe validarse como ObjectId (24 hex chars)
-const objectIdRegex = /^[0-9a-fA-F]{24}$/;
-
-export const createPrimarySchema = z.object({
-  name: z.string().min(1).max(100),
-  [secondary]: z.string().regex(objectIdRegex, 'ID inválido'),
-  // ... más campos
-});
-```
-
-### 3. Manejar errores en el repositorio
-
-```ts
-// Errores que DEBES manejar:
-// 11000 (unique) → AppError(409)
-// CastError      → AppError(400)
-// null devuelto  → AppError(404)
-```
-
-### 4. Seed: insertar secundaria primero
-
-```ts
-// SIEMPRE limpiar e insertar en este orden:
-await Primary.deleteMany({});
-await Secondary.deleteMany({});
-
-const [item1, item2] = await Secondary.insertMany([...]);
-await Primary.insertMany([
-  { ..., [secondary]: item1._id },
-  { ..., [secondary]: item2._id },
-]);
-```
-
----
-
-## 📌 Entregables
-
-1. **API funcional** — todos los endpoints responden correctamente
-2. **Código adaptado** — entidades con nombres y campos de tu dominio
-3. **Populate funcionando** — `GET /[principal]` devuelve la entidad secundaria como objeto
-4. **Errores manejados** — 400 (CastError), 404 (not found), 409 (duplicate)
-5. **Seed ejecutable** — `pnpm seed` inserta datos sin errores
-6. **README actualizado** — describe el dominio, entidades, campos y endpoints
-
-### Evidencia
-
-Incluye capturas de:
-- `GET /[principal]` mostrando el campo populado
-- `POST /[principal]` con éxito (201)
-- `POST /[principal]` con ID de secundaria inválido (400)
-- `POST /[principal]` con campo único duplicado (409)
-
----
-
-## 🔗 Recursos
-
-- [Mongoose Docs](https://mongoosejs.com/docs/)
-- [MongoDB Docker Hub](https://hub.docker.com/_/mongo)
-- Teoría semana 06: `1-teoria/`
+- Node.js 22 + Express 5.1
+- TypeScript 5.8
+- Mongoose 9.4 + MongoDB 7 (Docker)
+- Zod 4.3
