@@ -1,88 +1,163 @@
-# Semana 05 — PostgreSQL + Prisma ORM
+# 🚀 Proyecto Semana 05 — API con PostgreSQL y Prisma ORM
 
-## 🎯 Objetivos de la Semana
+## 🎯 Objetivo
 
-Al finalizar esta semana, serás capaz de:
+Migrar la API de tu dominio asignado del almacenamiento en memoria a **PostgreSQL** usando **Prisma ORM**. La API debe tener migraciones versionadas, seed de datos iniciales y manejo correcto de errores de base de datos.
 
-- Entender el modelo relacional de PostgreSQL: tablas, columnas, tipos, llaves primarias y foráneas
-- Configurar **Prisma ORM** en un proyecto Express con TypeScript
-- Definir modelos en `schema.prisma` con tipos de datos, relaciones y validaciones
-- Crear y ejecutar **migraciones** de base de datos con `prisma migrate dev`
-- Implementar operaciones CRUD completas usando el **Prisma Client**
-- Realizar consultas con filtros, paginación y ordenamiento
-- Modelar **relaciones uno-a-muchos y muchos-a-muchos** usando `@relation`
-- Integrar Prisma con la arquitectura en capas de semanas anteriores
+## 📋 Tu Dominio Asignado
 
-## 📋 Prerrequisitos
+**Import Company** — Empresa de importación que gestiona embarques internacionales y agentes aduanales.
 
-- Semanas 01–04 completadas
-- Arquitectura en 4 capas (`routes → controllers → services → repositories`)
-- `AppError` y `errorHandler` de semana 04
-- Docker instalado localmente (para correr PostgreSQL)
-- Variables de entorno (`.env`) manejadas con `dotenv`
+| Recurso principal | Recurso secundario (relación) |
+|-------------------|-------------------------------|
+| **Shipment** (embarque) | **CustomsBroker** (agente aduanal) |
 
-## 🗂️ Estructura de la Semana
+Un `CustomsBroker` puede gestionar múltiples `Shipment` (relación 1:N).
+
+---
+
+## ✅ Requisitos Funcionales
+
+### 1. Schema y Migraciones
+
+- Definir al menos **2 modelos** en `prisma/schema.prisma`:
+  - Recurso principal (items de tu dominio) con mínimo 6 campos tipados
+  - Recurso secundario con relación 1:N al principal
+- Ejecutar migraciones con `prisma migrate dev`
+- Carpeta `prisma/migrations/` versionada (no ignorada por `.gitignore`)
+
+### 2. Seed
+
+- `prisma/seed.ts` que carga datos demo en ambas entidades
+- Debe ser idempotente (ejecutable múltiples veces sin duplicar datos)
+- Mínimo 5 registros en el recurso principal
+
+### 3. API CRUD con Prisma
+
+Implementar los siguientes endpoints para el recurso principal:
+
+| Método | Ruta | Descripción | Status |
+|--------|------|-------------|--------|
+| GET | `/api/v1/shipments` | Listado paginado | 200 |
+| GET | `/api/v1/shipments/:id` | Detalle con broker | 200 / 404 |
+| POST | `/api/v1/shipments` | Crear (validar con Zod) | 201 / 400 / 409 |
+| PUT | `/api/v1/shipments/:id` | Actualizar | 200 / 404 |
+| DELETE | `/api/v1/shipments/:id` | Eliminar | 204 / 404 |
+
+### 4. Manejo de Errores Prisma
+
+- `P2025` (record not found) → `AppError(404, 'Shipment not found')`
+- `P2002` (unique constraint) → `AppError(409, 'Tracking number already exists')`
+- Todos los errores deben pasar por el middleware `errorHandler`
+
+### 5. Paginación
+
+- `GET /api/v1/shipments?page=1&limit=10` debe retornar:
+  ```json
+  {
+    "data": [...],
+    "total": 25,
+    "page": 1,
+    "limit": 10
+  }
+  ```
+
+---
+
+## 🗂️ Estructura del Starter
 
 ```
-week-05-postgresql_prisma/
-├── 0-assets/
-│   ├── 01-prisma-architecture.svg    # Capa Prisma Client entre app y DB
-│   ├── 02-migration-flow.svg         # Flujo: schema.prisma → migrate → DB
-│   └── 03-prisma-relations.svg       # Diagrama entidad-relación en Prisma
-├── 1-teoria/
-│   ├── 01-postgresql-fundamentos.md  # Modelo relacional, SQL, tablas, FK
-│   ├── 02-prisma-schema.md           # Setup Prisma, schema.prisma, modelos
-│   ├── 03-prisma-crud.md             # Prisma Client, CRUD, filtros, paginación
-│   └── 04-prisma-relaciones.md       # Relations, include, select, N+1
-├── 2-practicas/
-│   ├── ejercicio-01-prisma-setup/    # Instalar Prisma, primer schema y migración
-│   └── ejercicio-02-relaciones/      # Añadir relaciones e include a la API
-├── 3-proyecto/
-│   └── starter/                      # API con Prisma + AppError adaptable al dominio
-└── 5-glosario/
-    └── README.md
+starter/
+├── package.json
+├── tsconfig.json
+├── .env.example
+├── docker-compose.yml
+├── prisma/
+│   ├── schema.prisma      → modelos Shipment + CustomsBroker
+│   └── seed.ts            → 2 brokers + 6 shipments
+└── src/
+    ├── lib/prisma.ts       → singleton PrismaClient
+    ├── config/logger.ts    → Winston
+    ├── errors/AppError.ts  → dado
+    ├── middlewares/
+    │   ├── errorHandler.ts → global error handler
+    │   └── notFound.ts     → 404 handler
+    ├── schemas/items.schema.ts  → Zod schema para Shipment
+    ├── repositories/items.repository.ts  → CRUD + errores Prisma
+    ├── services/items.service.ts         → lógica de negocio
+    ├── controllers/items.controller.ts   → handlers HTTP
+    ├── routes/items.routes.ts            → rutas /api/v1/shipments
+    ├── app.ts             → router registrado
+    └── server.ts          → logger.info
 ```
 
-## 📝 Contenidos
+---
 
-### Teoría
+## 💡 Modelos del Dominio (Import Company)
 
-| Archivo | Tema | Duración estimada |
-|---------|------|:-----------------:|
-| [01-postgresql-fundamentos.md](1-teoria/01-postgresql-fundamentos.md) | Modelo relacional, tablas, FK, SQL básico | 30 min |
-| [02-prisma-schema.md](1-teoria/02-prisma-schema.md) | Setup Prisma, schema.prisma, modelos, migración init | 40 min |
-| [03-prisma-crud.md](1-teoria/03-prisma-crud.md) | Prisma Client, findMany, create, update, delete, paginación | 35 min |
-| [04-prisma-relaciones.md](1-teoria/04-prisma-relaciones.md) | @relation, include, select, problema N+1 | 30 min |
+**CustomsBroker → Shipment (1:N):**
+```prisma
+model CustomsBroker {
+  id            Int       @id @default(autoincrement())
+  companyName   String
+  licenseNumber String    @unique
+  contactEmail  String    @unique
+  phone         String?
+  country       String
+  active        Boolean   @default(true)
+  shipments     Shipment[]
+  createdAt     DateTime  @default(now())
+}
 
-### Prácticas
+model Shipment {
+  id              Int      @id @default(autoincrement())
+  trackingNumber  String   @unique
+  origin          String
+  destination     String
+  status          String   @default("PENDING")
+  weight          Float
+  containerCount  Int      @default(1)
+  departureDate   DateTime
+  arrivalDate     DateTime?
+  customsBrokerId Int?
+  broker          CustomsBroker? @relation(fields: [customsBrokerId], references: [id], onDelete: SetNull)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+```
 
-| Ejercicio | Concepto | Duración estimada |
-|-----------|----------|:-----------------:|
-| [ejercicio-01-prisma-setup](2-practicas/ejercicio-01-prisma-setup/) | Configurar Prisma, definir modelo, migrar y hacer CRUD | 75 min |
-| [ejercicio-02-relaciones](2-practicas/ejercicio-02-relaciones/) | Agregar segunda entidad con relación y usar `include` | 60 min |
+---
 
-### Proyecto
+## 🛠️ Iniciar el Proyecto
 
-[3-proyecto/README.md](3-proyecto/README.md) — API CRUD completa con Prisma + PostgreSQL, arquitectura en capas, AppError para manejo de errores Prisma (`P2025 Not Found`, `P2002 Unique constraint`), paginación y relaciones opcionales.
+```bash
+# 1. Levantar PostgreSQL
+docker compose up -d
 
-## ⏱️ Distribución del Tiempo (8 horas)
+# 2. Instalar dependencias
+pnpm install
 
-| Actividad | Tiempo |
-|-----------|-------:|
-| Teoría (4 archivos) | 2 h 15 min |
-| Ejercicio 01 — Prisma setup + CRUD | 1 h 15 min |
-| Ejercicio 02 — Relaciones + include | 1 h |
-| Proyecto semanal | 2 h 30 min |
-| Revisión y corrección | 1 h |
-| **Total** | **8 h** |
+# 3. Copiar variables de entorno y ajustar
+cp .env.example .env
+
+# 4. Definir tus modelos en prisma/schema.prisma
+
+# 5. Ejecutar primera migración
+pnpm dlx prisma migrate dev --name init
+
+# 6. Ejecutar seed
+pnpm dlx prisma db seed
+
+# 7. Iniciar servidor en modo desarrollo
+pnpm dev
+```
 
 ## 📌 Entregables
 
-1. ✅ Ejercicio 01: API con Prisma Client conectada a PostgreSQL, migraciones ejecutadas, seed con datos
-2. ✅ Ejercicio 02: Relación `@relation` definida, consultas con `include` funcionando
-3. ✅ Proyecto adaptado a tu dominio con Prisma + AppError + manejo de P2002/P2025
-4. ✅ Screenshots de Postman/Thunder Client con operaciones CRUD y errores controlados
-
-## 🔗 Navegación
-
-← [Semana 04 — Validación y Manejo de Errores](../week-04-validacion_error_handling/README.md) | [Semana 06 — MongoDB + Mongoose](../week-06-mongodb_mongoose/README.md) →
+1. **Repositorio** con `prisma/migrations/` incluida
+2. **README.md** del proyecto con:
+   - Descripción del dominio
+   - Diagrama de entidades (texto o imagen)
+   - Endpoints documentados con ejemplos de request/response
+3. **Screenshots** de Postman/Thunder Client mostrando los 5 endpoints
+4. **Logs del seed** (`pnpm dlx prisma db seed`) adjuntos en README
