@@ -1,7 +1,10 @@
 import express from 'express';
 import cookieParser from 'cookie-parser';
 import authRouter from './routes/auth.routes';
-import resourceRouter from './routes/resource.routes';
+import supplierRouter from './routes/supplier.routes';
+import productRouter from './routes/product.routes';
+import shipmentRouter from './routes/shipment.routes';
+import customsDeclarationRouter from './routes/customsDeclaration.routes';
 import { errorHandler } from './middlewares/errorHandler';
 import { notFound } from './middlewares/notFound';
 
@@ -13,12 +16,11 @@ app.use(cookieParser());
 // Rutas de autenticación
 app.use('/api/v1/auth', authRouter);
 
-// TODO: Cambia '/api/v1/resources' por la ruta plural de tu recurso.
-// Ejemplos:
-//   app.use('/api/v1/books', resourceRouter);
-//   app.use('/api/v1/medications', resourceRouter);
-//   app.use('/api/v1/members', resourceRouter);
-app.use('/api/v1/resources', resourceRouter);
+// Rutas del dominio de importación
+app.use('/api/v1/suppliers', supplierRouter);
+app.use('/api/v1/products', productRouter);
+app.use('/api/v1/shipments', shipmentRouter);
+app.use('/api/v1/customs-declarations', customsDeclarationRouter);
 
 // Middlewares de errores (siempre al final)
 app.use(notFound);

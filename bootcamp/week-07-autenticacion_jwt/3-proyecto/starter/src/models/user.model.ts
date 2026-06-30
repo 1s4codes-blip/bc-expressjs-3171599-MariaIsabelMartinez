@@ -1,18 +1,19 @@
 import mongoose, { Document, Schema } from 'mongoose';
 
 // ============================================
-// MODELO DE USUARIO
+// MODELO DE USUARIO — Empresa de Importación
 // ============================================
-// El rol por defecto es 'user'. Si tu dominio requiere
-// roles adicionales (ej: 'admin', 'librarian', 'pharmacist'),
-// agrégalos al enum de la propiedad role.
+// Roles del sistema:
+//   admin   — acceso total a todas las entidades
+//   agent   — agente de compras, gestiona proveedores y productos
+//   manager — gerente de logística, gestiona envíos y aduana
 // ============================================
 
 export interface IUser extends Document {
   email: string;
   password: string;
   name: string;
-  role: 'user' | 'admin';
+  role: 'admin' | 'agent' | 'manager';
   refreshToken?: string;
   createdAt: Date;
   updatedAt: Date;
@@ -39,8 +40,8 @@ const userSchema = new Schema<IUser>(
     },
     role: {
       type: String,
-      enum: ['user', 'admin'],
-      default: 'user',
+      enum: ['admin', 'agent', 'manager'],
+      default: 'agent',
     },
     refreshToken: {
       type: String,
